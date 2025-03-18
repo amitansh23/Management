@@ -4,6 +4,16 @@ import Booking from "../model/Hbooking.js";
 import user from "../model/user.js";
 import hoteldetail from "../model/hoteldetail.js";
 import OTP from "../model/otpModel.js";
+import { sendEmail } from "../utils/emailService.js";
+import {fileURLToPath} from "url";
+import path from "path";
+import ejs from "ejs";
+import nodemailer from "nodemailer";
+
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const registration = async (req, res) => {
   try {
@@ -127,14 +137,14 @@ export const getHotelDashboard = async (req, res) => {
       return res.status(401).json({ msg: "Unauthorized: No hotel found" });
     }
 
-    console.log("Fetching data for hotel:", storedUser);
+    // console.log("Fetching data for hotel:", storedUser);
 
     const bookedSlots = await Booking.find({ hotel: storedUser }).populate(
       "bookedBy",
       "fname lname email phone"
     );
 
-    console.log("Fetched Bookings:", bookedSlots);
+    // console.log("Fetched Bookings:", bookedSlots);
 
     const allSlots = ["1-3 PM", "4-6 PM", "6-9 PM"];
 
@@ -257,6 +267,133 @@ export const hoteldetaill = async (req, res) => {
   }
 };
 
+export const pendingbooking = async(req,res)=>{
+  try {
+
+    await Booking.findByIdAndUpdate(req.params.id, { status: 0 });
+    res.status(200).json({ msg: "Booking Pending"});
+    
+  } catch (error) {
+    res.status(500).json(error);
+  
+  }
+}
+
+export const confirmbooking = async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndUpdate(
+      req.params.id,
+      { status: 1 }, 
+      { new: true }
+    ).populate("bookedBy"); 
+
+    if (!booking) {
+      return res.status(404).json({ msg: "Booking not found" });
+    }
+
+    const user = booking.bookedBy; // Get user details
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    const confirmBookingPath = path.join(__dirname, "../views/confirmBooking.ejs");
+
+    // Render the EJS Template
+    ejs.renderFile(
+      confirmBookingPath,
+      {
+        fname: user.fname,
+        lname: user.lname,
+        email: user.email,
+        hotelname: booking.hotel,
+        bookingDate: booking.date,
+        timeSlot: booking.timeSlot,
+      },
+      async (err, emailHtml) => {
+        if (err) {
+          console.error("Error rendering email template:", err);
+          return res.status(500).json({ msg: "Error generating email template" });
+        }
+
+        // Email Options
+        const mailOptions = {
+          from: '"Hotel Booking" <yourhotel@example.com>',
+          to: user.email,
+          subject: "Your Hotel Booking is Confirmed!",
+          html: emailHtml,
+        };
+
+        await sendEmail(mailOptions);
+        return res.status(200).json({ msg: "Booking Confirmed & Email Sent!" });
+      }
+    );
+  } catch (error) {
+    console.error("Error confirming booking:", error);
+    return res.status(500).json({ msg: "Internal Server Error" });
+  }
+};
+
+
+
+
+export const cancelbooking = async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndUpdate(req.params.id, { status: 2 }, { new: true })
+      .populate("bookedBy", "fname lname email")
+      .populate("hotel", "name");
+
+    if (!booking) {
+      return res.status(404).json({ msg: "Booking not found" });
+    }
+
+    const { fname, lname, email } = booking.bookedBy;
+    const hotelname = booking.hotel.name;
+    const bookingDate = booking.date;
+    const timeSlot = booking.timeSlot;
+
+    const cancelBookingPath = path.join(__dirname, "../views/cancelBooking.ejs");
+
+    ejs.renderFile(cancelBookingPath, { fname, lname, email, hotelname, bookingDate, timeSlot }, async (err, emailHtml) => {
+      if (err) {
+        console.error("Error rendering cancellation email:", err);
+        return res.status(500).json({ msg: "Error generating email template" });
+      }
+
+      const mailOptions = {
+        from: '"Hotel Booking" <yourhotel@gmail.com>',
+        to: email,
+        subject: "Booking Cancellation - " + hotel,
+        html: emailHtml,
+      };
+
+      await sendEmail(mailOptions);
+      return res.status(200).json({ msg: "Booking Cancelled and Email Sent" });
+    });
+  } catch (error) {
+    console.error("Error in cancelBooking API:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //  USER API
 
 export const userregistration = async (req, res) => {
@@ -332,7 +469,7 @@ export const userlogin = async (req, res, next) => {
 export const finalregistration = async (req, res) => {
   try {
     const { fname, lname, email, password, address, phone } = req.body;
-    const superAdminEmail = "amitanshchaurasiya@gmail.com"; // Change this to actual SuperAdmin Email
+    const superAdminEmail = "amitanshchaurasiya@gmail.com"; //   SuperAdmin Email
 
     if (!fname || !lname || !email || !password || !address || !phone) {
       return res.status(403).json({

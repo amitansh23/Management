@@ -1,17 +1,25 @@
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 
-export const sendWelcomeEmail = async (mailOptions) => {
-    try{
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "officialcheck1234@gmail.com",
-      pass: process.env.SKEY 
-    },
-  });
-  return transporter.sendMail(mailOptions);
-}
-catch (error) {
-    console.error(error);
-}
+dotenv.config();
+
+export const sendEmail = async (mailOptions) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587, 
+      secure: false, 
+      auth: {
+        user: process.env.EMAIL_USER, 
+        pass: process.env.SKEY, 
+      },
+    });
+
+    const info = await transporter.sendMail(mailOptions);
+    // console.log(" Email Sent:", info.response);
+    return info;
+  } catch (error) {
+    // console.error(" Error Sending Email:", error);
+    return { success: false, error };
+  }
 };

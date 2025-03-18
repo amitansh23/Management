@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { type } from "os";
 
 const bookingSchema = new mongoose.Schema(
   {
@@ -10,6 +11,12 @@ const bookingSchema = new mongoose.Schema(
       ref: "user",
       required: true,
     }, // User ID
+    status:{
+      type: Number,
+      enum: [0, 1, 2], // 0: Pending, 1: Approved, 2: Rejected
+      default: 0,
+      
+    }
   },
   { timestamps: true }
 );

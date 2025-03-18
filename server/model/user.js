@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
 const Schema = mongoose.Schema;
-// import { type } from "os";
-// import { string } from "zod";
 import { DateTime } from 'luxon';
 
 
