@@ -8,7 +8,8 @@ import { sendEmail } from "../utils/emailService.js";
 import {fileURLToPath} from "url";
 import path from "path";
 import ejs from "ejs";
-import nodemailer from "nodemailer";
+// import nodemailer from "nodemailer";
+import Feedback from "../model/Feedback.js";
 
 
 
@@ -116,7 +117,8 @@ export const available_slots = async (req, res) => {
 
     const bookedSlots = await Booking.find({ hotel, date }).select("timeSlot");
 
-    const allSlots = ["1-3 pm", "4-6 pm", "6-9 pm"];
+    // const allSlots = ["1-3 pm", "4-6 pm", "6-9 pm"];
+    const allSlots = ["Morning", "Evening"];
     const availableSlots = allSlots.filter(
       (slot) => !bookedSlots.some((b) => b.timeSlot === slot)
     );
@@ -340,14 +342,14 @@ export const cancelbooking = async (req, res) => {
   try {
     const booking = await Booking.findByIdAndUpdate(req.params.id, { status: 2 }, { new: true })
       .populate("bookedBy", "fname lname email")
-      .populate("hotel", "name");
+      .populate("hotel", "hotel");
 
     if (!booking) {
       return res.status(404).json({ msg: "Booking not found" });
     }
 
     const { fname, lname, email } = booking.bookedBy;
-    const hotelname = booking.hotel.name;
+    const hotelname = booking.hotel;
     const bookingDate = booking.date;
     const timeSlot = booking.timeSlot;
 
@@ -374,6 +376,79 @@ export const cancelbooking = async (req, res) => {
     res.status(500).json({ msg: "Internal Server Error" });
   }
 };
+
+
+export const completebooking = async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndUpdate(req.params.id, { status: 3 }, { new: true })
+      .populate("bookedBy", "fname lname email _id")
+      .populate("hotel", "name " );
+
+    if (!booking) {
+      return res.status(404).json({ msg: "Booking not found" });
+    }
+
+    const { fname, lname, email , _id } = booking.bookedBy;
+    const hotelname = booking.hotel;
+    const bookingDate = booking.date;
+    const timeSlot = booking.timeSlot;
+
+    const feedbackLink = `http://localhost:3000/feedback?userId=${_id}&hotelname=${booking.hotel}`;
+
+    const completeBookingPath = path.join(__dirname, "../views/completeBooking.ejs");
+
+    ejs.renderFile(completeBookingPath, { fname, lname, email, hotelname, bookingDate, timeSlot, feedbackLink }, async (err, emailHtml) => {
+      if (err) {
+        console.error("Error rendering cancellation email:", err);
+        return res.status(500).json({ msg: "Error generating email template" });
+      }
+
+      const mailOptions = {
+        from: '"Event Complete" <yourhotel@gmail.com>',
+        to: email,
+        subject: "Booking complete - " + hotelname,
+        html: emailHtml,
+      };
+
+      await sendEmail(mailOptions);
+      return res.status(200).json({ msg: "Booking Cancelled and Email Sent" });
+    });
+  } catch (error) {
+    console.error("Error in cancelBooking API:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
+};
+
+
+export const submitFeedback = async (req, res) => {
+  try {
+    const {userId , hotelname, rating, experience } = req.body;
+    if(!userId || !hotelname ||  !experience) {
+      return res.status(400).json({ msg: "All fields are required" });
+    }
+    const feedback = await Feedback.create({ userId, hotelname, rating, experience });
+    res.status(201).json({ msg: "Feedback submitted successfully", feedback });
+  } catch (error) {
+    res.status(500).json({ msg: "Internal Server Error" });
+    
+  }
+}
+
+
+export const getHotelFeedback = async (req, res) => {
+  try {
+    const { hotelname } = req.params;
+    if (!hotelname) {
+      return res.status(400).json({ msg: "Hotel ID is required" });
+    }
+    const feedbacks = await Feedback.find({ hotelname }).populate("userId", "fname lname email");
+    res.status(200).json({ feedbacks });
+  } catch (error) {
+    res.status(500).json({ msg: "Internal Server Error" });
+    
+  }
+}
+
 
 
 

@@ -1,5 +1,5 @@
 import express from 'express'
-import  {registration, login, book, available_slots, userregistration, userlogin, getHotelDashboard, forgotpassword, updatepassword,  hoteldetaill, pendingbooking, confirmbooking, cancelbooking}  from '../controller/hotelcontroller.js';
+import  {registration, login, book, available_slots, userregistration, userlogin, getHotelDashboard, forgotpassword, updatepassword,  hoteldetaill, pendingbooking, confirmbooking, cancelbooking, completebooking, submitFeedback, getHotelFeedback}  from '../controller/hotelcontroller.js';
 import registrationotp from '../controller/RegistrationotpController.js';
 import forgetotp from '../controller/ForgetotpController.js';
 
@@ -15,6 +15,9 @@ route.post('/')
 route.put('/pendingbooking/:id', pendingbooking);
 route.put('/confirmbooking/:id', confirmbooking);
 route.put('/cancelbooking/:id', cancelbooking);
+route.put('/completebooking/:id', completebooking);
+route.post('/submitFeedback', submitFeedback);
+route.get('/getHotelFeedback/:hotelname', getHotelFeedback);
 
 
 
