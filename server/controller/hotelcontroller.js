@@ -1,7 +1,8 @@
 import HotelRegistration from "../model/hotelschema.js";
 import bcrypt from "bcrypt";
 import Booking from "../model/Hbooking.js";
-import user from "../model/user.js";
+// import user from "../model/user.js";
+import User from "../model/user.js";
 import hoteldetail from "../model/hoteldetail.js";
 import OTP from "../model/otpModel.js";
 import { sendEmail } from "../utils/emailService.js";
@@ -10,6 +11,8 @@ import path from "path";
 import ejs from "ejs";
 // import nodemailer from "nodemailer";
 import Feedback from "../model/Feedback.js";
+import Activity from "../model/Activitytrack.js";
+import { setUser } from "../middleware/token.js";
 
 
 
@@ -53,29 +56,46 @@ export const registration = async (req, res) => {
   }
 };
 
+
+
+
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by email
     const user = await HotelRegistration.findOne({ email });
     if (!user) {
       return res.status(404).json({ success: false, msg: "Invalid Login" });
     }
 
-    // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res
-        .status(401)
-        .json({ success: false, msg: "Incorrect password" });
+      return res.status(401).json({ success: false, msg: "Incorrect password" });
     }
+
+    const token = setUser(user);
+
+    req.session.user = {
+      _id: user._id, 
+      email: user.email,
+      token: token,
+      isLoggedIn: true,
+    };
+
+    try {
+      await req.session.save();
+      console.log("Session saved successfully");
+    } catch (error) {
+      console.error("Error setting session:", error);
+      return next(new Error("Error creating user session"));
+    }
+    
 
     return res.status(200).json({
       success: true,
       msg: "Login Successful",
       user,
-      // token,
+    
     });
   } catch (error) {
     console.error("Error during login:", error);
@@ -186,7 +206,7 @@ export const updatepassword = async (req, res) => {
       });
     }
     const hashPassword = await bcrypt.hash(newPassword, 10);
-    const updatedUser = await user.updateOne(
+    const updatedUser = await User.updateOne(
       { email }, // Find user by email
       { $set: { password: hashPassword } } // Update only password
     );
@@ -304,9 +324,9 @@ export const confirmbooking = async (req, res) => {
     ejs.renderFile(
       confirmBookingPath,
       {
-        fname: user.fname,
-        lname: user.lname,
-        email: user.email,
+        fname: User.fname,
+        lname: User.lname,
+        email: User.email,
         hotelname: booking.hotel,
         bookingDate: booking.date,
         timeSlot: booking.timeSlot,
@@ -320,7 +340,7 @@ export const confirmbooking = async (req, res) => {
         // Email Options
         const mailOptions = {
           from: '"Hotel Booking" <yourhotel@example.com>',
-          to: user.email,
+          to: User.email,
           subject: "Your Hotel Booking is Confirmed!",
           html: emailHtml,
         };
@@ -483,7 +503,7 @@ export const userregistration = async (req, res) => {
       });
     }
     // Check if user already exists
-    const existingUser = await user.findOne({ email });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -494,7 +514,7 @@ export const userregistration = async (req, res) => {
     const saltRound = 10;
     const hashpassword = await bcrypt.hash(password, saltRound);
 
-    const savedData = await user.create({
+    const savedData = await User.create({
       fname,
       lname,
       address,
@@ -509,29 +529,48 @@ export const userregistration = async (req, res) => {
   }
 };
 
+
+
+// REGISTRATION WITH WELCOME AND SUPERADMIN MAIL
+
+
 export const userlogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by email
-    const userdata = await user.findOne({ email });
-    if (!userdata) {
+    const user = await User.findOne({ email });
+    if (!user) {
       return res.status(404).json({ success: false, msg: "Invalid Login" });
     }
 
-    // Compare passwords
-    const isMatch = await bcrypt.compare(password, userdata.password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res
-        .status(401)
-        .json({ success: false, msg: "Incorrect password" });
+      return res.status(401).json({ success: false, msg: "Incorrect password" });
     }
+
+    const token = setUser(user);
+
+    req.session.user = {
+      _id: user._id, 
+      email: user.email,
+      token: token,
+      isLoggedIn: true,
+    };
+
+    try {
+      await req.session.save();
+      console.log("Session saved successfully");
+    } catch (error) {
+      console.error("Error setting session:", error);
+      return next(new Error("Error creating user session"));
+    }
+    
 
     return res.status(200).json({
       success: true,
       msg: "Login Successful",
-      userdata,
-      // token,
+      user,
+    
     });
   } catch (error) {
     console.error("Error during login:", error);
@@ -539,7 +578,6 @@ export const userlogin = async (req, res, next) => {
   }
 };
 
-// REGISTRATION WITH WELCOME AND SUPERADMIN MAIL
 
 export const finalregistration = async (req, res) => {
   try {
@@ -553,7 +591,7 @@ export const finalregistration = async (req, res) => {
       });
     }
     // Check if user already exists
-    const existingUser = await user.findOne({ email });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -564,7 +602,7 @@ export const finalregistration = async (req, res) => {
     const saltRound = 10;
     const hashpassword = await bcrypt.hash(password, saltRound);
 
-    const savedData = await user.create({
+    const savedData = await User.create({
       fname,
       lname,
       email,
@@ -653,5 +691,59 @@ export const finalregistration = async (req, res) => {
   } catch (error) {
     console.error("Registration Error:", error);
     res.status(500).json({ msg: "Internal Server Error" });
+  }
+};
+
+
+
+// export const trackEvent = async (req, res) => {
+//   console.log(req.body,"gwd");
+//   try {
+//     const { userId, event } = req.body;
+
+//     const sessionId = req.sessionID.toString(); // Get session ID from session automatically
+//     console.log(sessionId,"sid");
+
+//     let activity = await Activity.findOne({ sessionId });
+
+//     if (!activity) {
+//         activity = new Activity({ userId, sessionId, events: [] });
+//     }
+
+//     activity.events.push(event);
+//     // activity.device = device;
+//     await activity.save();
+
+//     res.status(200).json({ success: true, msg: "Event tracked successfully" });
+// } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ success: false, msg: "Error tracking event" });
+// }
+// };
+
+
+export const trackEvent = async (req, res) => {
+ 
+  try {
+      const { userId, event } = req.body;
+      const sessionId = req.sessionID.toString(); 
+
+      let activity = await Activity.findOne({ sessionId });
+
+      if (!activity) {
+          activity = new Activity({ userId, sessionId, events: [] });
+      }
+
+      activity.events.push({
+          type: event.type, 
+          timestamp: event.timestamp || new Date(), 
+      });
+
+      await activity.save();
+
+      res.status(200).json({ success: true, msg: "Event tracked successfully" });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, msg: "Error tracking event" });
   }
 };

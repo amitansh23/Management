@@ -3,6 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import session from 'express-session';
+import MongoStore from 'connect-mongo';
 
 dotenv.config();
 
@@ -13,6 +15,15 @@ const MONGO_URI = process.env.MONGO_URI;
 
 app.use(express.json())
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+
+app.use(session({
+  name: "sessionId",
+  secret: "Amitansh",
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI, collectionName: "sessions" }),
+  cookie: { maxAge: 1000 * 60 * 60 * 1, secure: false, httpOnly: true },
+}));
 
 
 app.use('/api', route);
@@ -28,3 +39,6 @@ mongoose.connect(MONGO_URI)
   .catch((error) => {
     console.error("MongoDB connection error:", error);
   });
+
+
+ 

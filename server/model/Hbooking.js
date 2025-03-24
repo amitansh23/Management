@@ -8,7 +8,7 @@ const bookingSchema = new mongoose.Schema(
     timeSlot: { type: String, required: true }, // "1-3 pm", "4-6 pm", "6-9 pm"
     bookedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
+      ref: "User",
       required: true,
     }, // User ID
     status:{

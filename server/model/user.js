@@ -58,4 +58,4 @@ userSchema.pre("save", function setDatetime(next){
     
 })
 
-export default mongoose.model("user", userSchema);// Database crud mai User table bnegi usmai ye userSchema store hoga
+export default mongoose.model("User", userSchema);// Database crud mai User table bnegi usmai ye userSchema store hoga
