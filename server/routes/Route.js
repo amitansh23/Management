@@ -1,5 +1,5 @@
 import express from 'express'
-import  {registration, login, book, available_slots, userregistration, userlogin, getHotelDashboard, forgotpassword, updatepassword,  hoteldetaill, pendingbooking, confirmbooking, cancelbooking, completebooking, submitFeedback, getHotelFeedback, trackEvent}  from '../controller/hotelcontroller.js';
+import  {registration, login, book, available_slots, userregistration, userlogin, getHotelDashboard, forgotpassword, updatepassword,  hoteldetaill, pendingbooking, confirmbooking, cancelbooking, completebooking, submitFeedback, getHotelFeedback, trackEvent, logout}  from '../controller/hotelcontroller.js';
 import registrationotp from '../controller/RegistrationotpController.js';
 import forgetotp from '../controller/ForgetotpController.js';
 import { getUser } from '../middleware/token.js';
@@ -25,6 +25,7 @@ route.get('/getHotelFeedback/:hotelname', getHotelFeedback);
 
 route.post('/userregistration', userregistration)
 route.post('/userlogin', userlogin);
+route.post('/logout', logout);
 
 
 

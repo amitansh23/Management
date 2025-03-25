@@ -19,7 +19,7 @@ export const sendEmail = async (mailOptions) => {
     // console.log(" Email Sent:", info.response);
     return info;
   } catch (error) {
-    // console.error(" Error Sending Email:", error);
+    console.error(" Error Sending Email:", error);
     return { success: false, error };
   }
 };

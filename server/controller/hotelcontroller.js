@@ -166,9 +166,9 @@ export const getHotelDashboard = async (req, res) => {
       "fname lname email phone"
     );
 
-    // console.log("Fetched Bookings:", bookedSlots);
 
-    const allSlots = ["1-3 PM", "4-6 PM", "6-9 PM"];
+    const allSlots = ["Morning","Evening"];
+    // const allSlots = ["1-3 PM", "4-6 PM", "6-9 PM"];
 
     const bookedTimeSlots = bookedSlots.map((b) => b.timeSlot);
 
@@ -288,6 +288,7 @@ export const hoteldetaill = async (req, res) => {
     console.log(error);
   }
 };
+
 
 export const pendingbooking = async(req,res)=>{
   try {
@@ -747,3 +748,21 @@ export const trackEvent = async (req, res) => {
       res.status(500).json({ success: false, msg: "Error tracking event" });
   }
 };
+
+
+
+export const logout = async (req, res) => {
+  if (req.session) {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ success: false, msg: "Logout failed" });
+      }
+      res.clearCookie("example"); // Ensure the session cookie is cleared
+      return res.status(200).json({ success: true, msg: "Logout successful" });
+    });
+  } else {
+    return res.status(400).json({ success: false, msg: "No active session" });
+  }
+};
+
+

@@ -1,31 +1,3 @@
-// import mongoose from 'mongoose';
-
-// const activitySchema = new mongoose.Schema({
-//     // userId: String,
-//     userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
-//     sessionId: { type: String },
-//     events: [
-//         {
-//             type: String,
-//             // url: String,
-//             // element: String,
-//             timestamp: { type: Date, default: Date.now },
-//         },
-//     ],
-//     // device: {
-//     //     os: String,
-//     //     browser: String,
-//     //     ip: String,
-//     // },
-//     sessionStart: { type: Date, default: Date.now },
-//     sessionEnd: Date,
-// });
-
-// export default mongoose.model("Activity", activitySchema);
-
-
-
-
 import mongoose from "mongoose";
 
 const activitySchema = new mongoose.Schema({
