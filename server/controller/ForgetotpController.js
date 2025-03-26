@@ -16,6 +16,7 @@ const forgetotp = async (req, res) => {
         message: 'User not exist' // YE FORGOT KE LIYE
       });
     }
+    
     let otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
       lowerCaseAlphabets: false,

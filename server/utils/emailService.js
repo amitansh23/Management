@@ -10,8 +10,8 @@ export const sendEmail = async (mailOptions) => {
       port: 587, 
       secure: false, 
       auth: {
-        user: process.env.EMAIL_USER, 
-        pass: process.env.SKEY, 
+        user: "officialcheck1234@gmail.com", 
+        pass: "keer gpjv fdqg kujx", 
       },
     });
 

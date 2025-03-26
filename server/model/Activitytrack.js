@@ -5,8 +5,8 @@ const activitySchema = new mongoose.Schema({
     sessionId: { type: String, required: true },
     events: [
         {
-            type: { type: String, required: true }, // Store event type as string
-            timestamp: { type: Date, default: Date.now }, // Store event time as Date
+            type: { type: String, required: true }, // ismai event store
+            timestamp: { type: Date, default: Date.now }, 
         },
     ],
 });

@@ -18,7 +18,7 @@ app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
 app.use(session({
   name: "sessionId",
-  secret: "Amitansh",
+  secret: "Amitansh@1234",
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI, collectionName: "sessions" }),

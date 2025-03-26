@@ -10,9 +10,9 @@ route.post('/registration', registration);
 route.post('/login', login);
 route.post('/book', getUser,book);
 route.get('/available_slots',available_slots)
-route.get('/hoteldashboard',getHotelDashboard)
-route.post('/hoteldetail', hoteldetaill);
-route.post('/')
+route.get('/hoteldashboard', getUser ,getHotelDashboard)
+route.post('/hoteldetail', getUser ,hoteldetaill);
+
 route.put('/pendingbooking/:id', pendingbooking);
 route.put('/confirmbooking/:id', confirmbooking);
 route.put('/cancelbooking/:id', cancelbooking);

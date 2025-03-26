@@ -325,9 +325,9 @@ export const confirmbooking = async (req, res) => {
     ejs.renderFile(
       confirmBookingPath,
       {
-        fname: User.fname,
-        lname: User.lname,
-        email: User.email,
+        fname: user.fname,
+        lname: user.lname,
+        email: user.email,
         hotelname: booking.hotel,
         bookingDate: booking.date,
         timeSlot: booking.timeSlot,
@@ -338,12 +338,11 @@ export const confirmbooking = async (req, res) => {
           return res.status(500).json({ msg: "Error generating email template" });
         }
 
-        // Email Options
         const mailOptions = {
           from: '"Hotel Booking" <yourhotel@example.com>',
-          to: User.email,
+          to: user.email,
           subject: "Your Hotel Booking is Confirmed!",
-          html: emailHtml,
+          html: emailHtml, 
         };
 
         await sendEmail(mailOptions);
@@ -385,7 +384,7 @@ export const cancelbooking = async (req, res) => {
       const mailOptions = {
         from: '"Hotel Booking" <yourhotel@gmail.com>',
         to: email,
-        subject: "Booking Cancellation - " + hotel,
+        subject: "Booking Cancellation - " + hotelname,
         html: emailHtml,
       };
 
